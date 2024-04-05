@@ -3,11 +3,11 @@
 #include <Adafruit_NeoPixel.h>
 
 // WiFi credentials
-const char* ssid = "SSID";
-const char* password = "PASS";
+const char* ssid = "";
+const char* password = "";
 
 // MQTT Server
-const char* mqtt_server = "SERVER";
+const char* mqtt_server = "";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -24,9 +24,15 @@ void setup_wifi() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
+     // set color red if we cant connect to wifi
+    pixels.fill(0xFF0000);
+    pixels.show();
     delay(500);
     Serial.print(".");
   }
+
+  pixels.fill(0xFFDD00); //yellow
+  pixels.show();
 
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
@@ -42,10 +48,18 @@ void reconnect() {
       Serial.println("connected");
       // Once connected, publish an announcement...
       client.publish("outTopic", "hello world");
+
+      // set color to green if can connect to mqtt
+      pixels.fill(0x00FF00);
+      pixels.show();
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
+
+      // set color to yellow if cant connect to mqtt
+      pixels.fill(0xFFDD00); //yellow
+      pixels.show();
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -54,14 +68,15 @@ void reconnect() {
 
 void setup() {
   Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
 
   pinMode(NEOPIXEL_POWER, OUTPUT);
   digitalWrite(NEOPIXEL_POWER, HIGH);
+  pixels.setBrightness(10); // not so bright
+
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
-  pixels.setBrightness(10); // not so bright
 }
 
 void loop() {
